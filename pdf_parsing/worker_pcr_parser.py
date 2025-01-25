@@ -1,4 +1,4 @@
-class PDFText:
+class WorkerPDFParser:
 
     def __init__(self):
         pass

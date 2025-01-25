@@ -1,4 +1,5 @@
 
 
 # Extraction
-pdfplumber
+pdfplumber==0.11.5
+pytesseract==0.3.13
