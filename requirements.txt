@@ -3,3 +3,12 @@
 # Extraction
 pdfplumber==0.11.5
 pytesseract==0.3.13
+
+# Classification
+sentence_transformers==3.4.0
+
+# LLM
+openai==1.60.1
+
+# Storage
+pymongo==4.10.1

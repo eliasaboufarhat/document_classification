@@ -3,7 +3,7 @@ import json
 import pdfplumber
 
 from pdf_parsing.worker_ocr import WorkerOCR
-from pdf_parsing.worker_pcr_parser import WorkerPDFParser
+from pdf_parsing.worker_pdf_parser import WorkerPDFParser
 from constants import MIN_TEXT_LENGTH
 
 
@@ -13,6 +13,8 @@ class QueueFiles:
 
         self.ocr = WorkerOCR()
         self.pdf_parser = WorkerPDFParser()
+
+        self.docs = []
 
     def run(self):
         if os.path.exists(self.data_dir):
@@ -25,6 +27,10 @@ class QueueFiles:
                     if result == "ocr":
                         content = self.ocr.run(f)
 
+                    if result == "text":
+                        content = self.pdf_parser.run(f)
+
+                    self.docs.append(content)
         return
 
     def check_extraction_technique(self, file_path):
