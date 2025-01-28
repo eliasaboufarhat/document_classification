@@ -8,7 +8,7 @@ pytesseract==0.3.13
 sentence_transformers==3.4.0
 
 # LLM
-openai==1.60.1
+ollama==0.4.7
 
 # Storage
 pymongo==4.10.1

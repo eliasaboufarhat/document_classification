@@ -1,12 +1,19 @@
 import os
 from openai import OpenAI
 import numpy as np
+from pydantic import BaseModel
 from sklearn.cluster import KMeans
 from sentence_transformers import SentenceTransformer
+
+from classification.llm import LLM
 
 # ------|| Idea ||------
 # 1. Document Level Classification
 # 2. Multiple Chunks Classification and take majority vote
+
+
+class Label(BaseModel):
+    label: str
 
 
 class Classifier:
@@ -15,6 +22,8 @@ class Classifier:
         self.n_clusters = 6
         self.docs = []
         self.processed_docs = []
+        self.labels = []
+        self.llm = LLM()
 
         try:
             self.client = OpenAI(api_key=os.environ.get("OPEN_AI_SECRET_KEY", None))
@@ -51,86 +60,64 @@ class Classifier:
         kmeans = KMeans(n_clusters=6, random_state=42)
         kmeans.fit(embeddings)
         cluster_labels = kmeans.labels_
-        # distinct_labels = set(cluster_labels)
+        distinct_labels = set(cluster_labels)
 
-        # for cluster_idx in distinct_labels:
-        #     indices_in_cluster = np.where(cluster_labels == cluster_idx)[0]
-        #     centroid = kmeans.cluster_centers_[cluster_idx]
+        mapping_labels = {}
 
-        #     distances = []
-        #     for idx in indices_in_cluster:
-        #         dist = np.linalg.norm(embeddings[idx] - centroid)
-        #         distances.append((idx, dist))
+        for cluster_idx in distinct_labels:
+            indices_in_cluster = np.where(cluster_labels == cluster_idx)[0]
+            centroid = kmeans.cluster_centers_[cluster_idx]
 
-        #     distances.sort(key=lambda x: x[1])
-        #     top_docs = distances[:3]
+            distances = []
+            for idx in indices_in_cluster:
+                dist = np.linalg.norm(embeddings[idx] - centroid)
+                distances.append((idx, dist))
 
-        # representative_texts = [docs[idx] for (idx, d) in top_docs]
-
-        return cluster_labels
+            distances.sort(key=lambda x: x[1])
+            top_docs = distances[:3]
+            representative_docs = [self.docs[idx] for (idx, d) in top_docs]
+            mapping_labels[cluster_idx] = self.predict_labels(
+                cluster_idx, representative_docs
+            )
+        return mapping_labels
 
     def embed(self, docs):
         embeddings = self.model.encode(docs)
         return embeddings
 
-    def predict_labels(self, cluster_id, text_snippet, candidate_labels):
+    def predict_labels(self, cluster_id, text_snippet):
+        print()
+        print()
+        print(str(text_snippet))
         prompt = f"""
-        I have the following documents metadata and text in one cluster:
-        {text_snippet}
+I have a cluster of documents, each containing metadata and text. A "cluster label" is the most representative name for the group of documents in the cluster, capturing the main theme or topic that best describes their content and metadata.
 
-        Based on the content, choose the most appropriate label from this list or suggest a new one if it does not exists:
-        {candidate_labels}
+Here is the cluster you need to label:
+Metadata and Text: {str(text_snippet)}
 
-        Return the result as JSON format. Make sure to follow this structure 
-        {{
-            "label": "In here will be your label",
-        }}
-        """
+Return your answer in the following JSON format. Make sure the label is concise and accurately represents the content of the cluster:
+{{
+    "label": "The cluster label here",
+}}
+"""
 
-        if not self.client:
-            return f"Cluster {cluster_id}"
+        # if not self.client:
+        #     return f"Cluster {cluster_id}"
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": "You are a classifier assistant."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.1,
-        )
+        # response = self.client.chat.completions.create(
+        #     model="gpt-4o-mini",
+        #     response_format={"type": "json_object"},
+        #     messages=[
+        #         {"role": "system", "content": "You are a classifier assistant."},
+        #         {"role": "user", "content": prompt},
+        #     ],
+        #     temperature=0.1,
+        # )
         try:
-            answer = response["choices"][0]["message"]["content"]
+            label = self.llm.run(prompt, Label)
+            # self.labels.append(label.label)
+            return label.label
 
-            if "label" in answer:
-                return answer["label"]
         except Exception as e:
             print(f"Error in predicting labels: {e}")
             return f"Cluster {cluster_id}"
-
-
-# if __name__ == "__main__":
-#     docs = [
-#         "Machine learning algorithms have revolutionized the field of AI.",
-#         "Deep learning and neural networks are subsets of machine learning.",
-#         "Artificial intelligence applications range from healthcare to finance.",
-#         "AI and automation are reshaping industries across the globe.",
-#         "Climate change and global warming are pressing issues for humanity.",
-#         "The impact of renewable energy on the global economy is profound.",
-#         "Space exploration has led to significant advancements in science.",
-#         "NASA’s Mars rover has been a breakthrough in space research.",
-#         "The discovery of new exoplanets excites the field of astronomy.",
-#         "Quantum computing has the potential to revolutionize cryptography.",
-#         "Blockchain technology is widely used in cryptocurrency applications.",
-#         "Bitcoin and Ethereum are two of the most popular cryptocurrencies.",
-#         "The benefits of regular exercise include improved mental health.",
-#         "A balanced diet and good nutrition are key to staying healthy.",
-#         "Meditation and mindfulness can reduce stress and improve focus.",
-#         "The history of art is a reflection of cultural evolution over time.",
-#         "Modern architecture combines function and aesthetics beautifully.",
-#         "The smartphone industry is constantly evolving with new innovations.",
-#         "Social media platforms have transformed how people communicate.",
-#         "The rise of e-commerce has changed consumer shopping habits.",
-#     ]
-#     classifier = Classifier()
-#     classifier.run(docs)
