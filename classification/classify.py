@@ -26,6 +26,7 @@ class Classifier:
         self.labels = []
         self.llm = LLM()
         self.privacy = privacy
+        self.mapping_labels = {}
 
         try:
             self.client = OpenAI(api_key=os.environ.get("OPEN_AI_SECRET_KEY", None))
@@ -64,8 +65,6 @@ class Classifier:
         cluster_labels = kmeans.labels_
         distinct_labels = set(cluster_labels)
 
-        mapping_labels = {}
-
         for cluster_idx in distinct_labels:
             indices_in_cluster = np.where(cluster_labels == cluster_idx)[0]
             centroid = kmeans.cluster_centers_[cluster_idx]
@@ -79,10 +78,15 @@ class Classifier:
             # top_docs = distances[:3]
             top_docs = distances
             representative_docs = [self.docs[idx] for (idx, d) in top_docs]
-            mapping_labels[cluster_idx] = self.predict_labels(
+            self.mapping_labels[cluster_idx] = self.predict_labels(
                 cluster_idx, representative_docs
             )
-        return mapping_labels
+
+        for doc_id in range(len(cluster_labels)):
+            self.docs[doc_id]["label"] = self.mapping_labels[cluster_labels[doc_id]]
+            self.docs[doc_id]["cluster_id"] = cluster_labels[doc_id]
+
+        return self.docs
 
     def embed(self, docs):
         embeddings = self.model.encode(docs)

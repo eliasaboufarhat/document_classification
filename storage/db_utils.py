@@ -26,9 +26,7 @@ class DB:
     def connect(self):
 
         if self.user and self.password:
-            mongo_uri = (
-                f"mongodb://{self.user}:{self.password}@{self.server}/{self.db_name}"
-            )
+            mongo_uri = f"mongodb://{self.user}:{self.password}@{self.server}/{self.db_name}?authSource=admin"
         else:
             mongo_uri = f"mongodb://{self.server}"
 
@@ -46,13 +44,13 @@ class DB:
 
         if query_filter is None:
             query_filter = {}
-        if not self.collection:
-            raise RuntimeError("Not connected. Call connect() first.")
+
         return list(self.collection.find(query_filter))
 
     def insert(self, doc):
-
-        if not self.collection:
-            raise RuntimeError("Not connected. Call connect() first.")
         result = self.collection.insert_one(doc)
         return result.inserted_id
+
+    def delete(self, delete_filter):
+        result = self.collection.delete_many(delete_filter)
+        return True

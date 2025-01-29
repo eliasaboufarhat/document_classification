@@ -17,14 +17,15 @@ def main():
 
     database.connect()
 
-    files_extractor = QueueFiles(data_dir="data")
+    files_extractor = QueueFiles(data_dir="./data")
     files_extractor.run()
 
     classifier = Classifier(privacy=True)
     classifier.pre_process_docs(docs=files_extractor.docs)
-    labels = classifier.run()
+    classifier.run()
 
-    print(labels)
+    for doc in classifier.docs:
+        database.insert(doc)
 
 
 if __name__ == "__main__":
