@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 
-class DB:
+class DBUtils:
     def __init__(
         self,
         server="localhost:27017",

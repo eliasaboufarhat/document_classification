@@ -26,9 +26,11 @@ class QueueFiles:
                     print(f"{filename} - {result}")
                     if result == "ocr":
                         content = self.ocr.run(f)
+                        content["method"] = "ocr"
 
                     if result == "text":
                         content = self.pdf_parser.run(f)
+                        content["method"] = "text"
 
                     self.docs.append(content)
         return

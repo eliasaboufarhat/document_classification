@@ -11,13 +11,18 @@ class WorkerPDFParser:
     def run(self, file_path):
         results = {"document_id": file_path, "pages": []}
 
+        tables_length = 0
+        images_length = 0
         with pdfplumber.open(file_path) as pdf:
             for i, page in enumerate(pdf.pages):
                 # Text & tables
                 text, table_data = self.parse_page_text_and_tables(page)
+                tables_length += len(table_data)
+
                 # Images
                 try:
                     images_ocr = self.parse_images_with_ocr(page)
+                    images_length += len(images_ocr)
                 except ValueError:
                     images_ocr = []
                     print(f"Error in images OCR for {file_path} - pags {i + 1}")
@@ -30,6 +35,8 @@ class WorkerPDFParser:
                 }
                 results["pages"].append(page_info)
 
+        results["tables_count"] = tables_length
+        results["images_count"] = images_length
         return results
 
     def parse_page_text_and_tables(self, page):

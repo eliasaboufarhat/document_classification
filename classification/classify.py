@@ -84,7 +84,7 @@ class Classifier:
 
         for doc_id in range(len(cluster_labels)):
             self.docs[doc_id]["label"] = self.mapping_labels[cluster_labels[doc_id]]
-            self.docs[doc_id]["cluster_id"] = cluster_labels[doc_id]
+            self.docs[doc_id]["cluster_id"] = int(cluster_labels[doc_id])
 
         return self.docs
 
@@ -94,10 +94,12 @@ class Classifier:
 
     def predict_labels(self, cluster_id, text_snippet):
         prompt = f"""
-I have a cluster of documents, each containing metadata and text. A "cluster label" is the most representative category for the group of documents in the cluster, capturing the main theme or topic that best describes their content and metadata. Should be a simple general category name like 'Prescription', 'Order', 'Recipe'.
+I have a cluster of documents, each containing metadata and text. A "cluster label" is the most representative category for the group of documents in the cluster, capturing the main theme or topic that best describes their content and metadata. Should be a simple general label name like 'prescription', 'order', 'health', 'recipe' or other.
 
 Here is the cluster you need to label:
 Metadata and Text: {str(text_snippet)}
+
+Make sure that the label of this cluster is not large and is only a category name as provided with the examples above. Do not write a sentence or a paragraph as a label.
 
 Return your answer in the following JSON format. Make sure the label is concise and accurately represents the content of the cluster:
 {{
