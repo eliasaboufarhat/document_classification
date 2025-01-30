@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 
 from storage.db_utils import DBUtils
@@ -54,14 +55,18 @@ class Main:
 
     def submit_pdf(self, temp_pdf_path):
 
-        files_extractor = QueueFiles(data_dir="./data")
+        try:
+            with open("queue.json", "r") as f:
+                queue = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            queue = []
 
-        doc = files_extractor.run_one_pdf(temp_pdf_path)
+        new_task = {"id": len(queue) + 1, "file": temp_pdf_path, "status": "pending"}
+        queue.append(new_task)
 
-        classifier = Classifier(privacy=True)
-        pre_processed_docs = classifier.pre_process_docs(docs=[doc])
-        doc = classifier.predict(doc, pre_processed_docs)
-        self.db.insert(doc)
+        with open("queue.json", "w") as f:
+            json.dump(queue, f, indent=4)
+
         return
 
 

@@ -2,6 +2,7 @@
 __version__ = "0.1"
 app_name = "Ashvin IDP"
 
+import json
 import streamlit as st
 import pandas as pd
 from time import time as now
@@ -9,20 +10,16 @@ import altair as alt
 
 from main import Main
 
-# Set Streamlit page configuration
 st.set_page_config(layout="centered", page_title=f"{app_name} {__version__}")
 
-# Session state initialization
 ss = st.session_state
 if "debug" not in ss:
     ss["debug"] = {}
 
-# Import custom CSS
 import css
 
 st.write(f"<style>{css.v1}</style>", unsafe_allow_html=True)
 
-# Header placeholders
 header1, header2, header3 = st.empty(), st.empty(), st.empty()
 
 
@@ -94,10 +91,26 @@ def ui_pdf_file():
         )
 
     with t2:
+        data = show_files_queues()
+        if not data:
+            st.info("No files in the queue.")
+            return
+
+        st.write("### Files in the queue")
+        for item in data:
+            st.write(f"File: {item['file']} - Status: {item['status']}")
         pass
 
 
 # ---------|| ANAlYTICS ||---------
+def show_files_queues():
+
+    with open("queue.json", "r") as f:
+        queue = json.load(f)
+
+    return queue
+
+
 def show_clusters():
 
     data = main_worker.query_by_clusters()

@@ -4,6 +4,8 @@ pytesseract==0.3.13
 
 # Classification
 sentence_transformers==3.4.0
+matplotlib==3.9.4
+seaborn==0.13.2
 
 # Frontend
 streamlit==1.41.1
