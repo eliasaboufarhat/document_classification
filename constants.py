@@ -1,1 +1,0 @@
-MIN_TEXT_LENGTH = 50

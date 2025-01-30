@@ -43,9 +43,6 @@ The system was designed to read PDF files, classify them into six categories, an
 ![Project Overview](report/Confusion_Matrix.png)
 ![Project Overview](report/report.png)
 
-1. Accuracy Overview
-   The overall classification accuracy is 71%.
-
 ## Setup and Installation
 
 Follow these steps to set up the project locally:

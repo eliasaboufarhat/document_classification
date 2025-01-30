@@ -5,7 +5,6 @@ import shutil
 
 from pdf_parsing.worker_ocr import WorkerOCR
 from pdf_parsing.worker_pdf_parser import WorkerPDFParser
-from constants import MIN_TEXT_LENGTH
 
 
 class QueueFiles:
@@ -60,7 +59,7 @@ class QueueFiles:
                     page_text = page.extract_text()
                     if page_text:
                         total_text += page_text
-                if len(total_text) < MIN_TEXT_LENGTH:
+                if len(total_text) < 50:
                     return "ocr"
                 return "text"
         except Exception as e:

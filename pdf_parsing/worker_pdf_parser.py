@@ -58,24 +58,14 @@ class WorkerPDFParser:
         return text, table_data
 
     def parse_images_with_ocr(self, page):
-        """
-        TODO: There is an error in this method
-        """
         images_with_text = []
 
-        for img_idx, img in enumerate(page.images):
-            x0 = img["x0"]
-            top = img["top"]
-            x1 = img["x1"]
-            bottom = img["bottom"]
-            cropped_page = page.crop((x0, top, x1, bottom))
-            page_image = cropped_page.to_image(resolution=300).original
-            ocr_text = pytesseract.image_to_string(page_image)
-            images_with_text.append(
-                {
-                    "image_id": img_idx + 1,
-                    "box": [x0, top, x1, bottom],
-                    "ocr_text": ocr_text,
-                }
-            )
+        page_image = page.to_image(resolution=300).original
+        ocr_text = pytesseract.image_to_string(page_image)
+
+        images_with_text.append(
+            {
+                "ocr_text": ocr_text,
+            }
+        )
         return images_with_text
