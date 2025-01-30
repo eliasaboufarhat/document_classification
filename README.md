@@ -21,6 +21,8 @@ The system was designed to read PDF files, classify them into six categories, an
    - **Internal LLM-Based Classification** - Uses a large language model (LLM) hosted locally to classify documents by analyzing the top three documents in each cluster.
 4. **Storage** - Classification results are stored in a NoSQL database (MongoDB) locally for easy retrieval and further analysis.
 
+![Project Overview](report/Platform.png)
+
 ## Assumptions
 
 - Due to privacy concerns, external APIs such as LLamaParse for smart PDF parsing or OpenAI models.
@@ -177,7 +179,7 @@ Follow these steps to set up the project locally:
 1. **Run Streamlit App**
 
    ```bash
-   streamlit run frontend/ui.py
+   streamlit run ui.py
    ```
 
 1. **Run IDP Queue**
