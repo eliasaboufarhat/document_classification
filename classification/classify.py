@@ -9,10 +9,6 @@ from sentence_transformers import SentenceTransformer
 
 from classification.llm import LLM
 
-# ------|| Idea ||------
-# 1. Document Level Classification
-# 2. Multiple Chunks Classification and take majority vote
-
 
 class Label(BaseModel):
     label: str

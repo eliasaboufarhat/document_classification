@@ -41,7 +41,70 @@ The system was designed to read PDF files, classify them into six categories, an
 ## Evaluation
 
 ![Project Overview](report/Confusion_Matrix.png)
+
 ![Project Overview](report/report.png)
+
+### Performance
+
+The overall classification accuracy is 76%, meaning that 76% of the documents were correctly classified.
+
+- Compliance and Delivery have perfect precision, recall, and F1-scores (1.00).
+- Order has a high recall (1.00) and a decent precision (0.80), leading to an F1-score of 0.89.
+- Physician has both precision and recall at 0.50, meaning it only gets half of its classifications correct.
+
+- Prescription has low recall --> Many true "Prescription" documents were misclassified
+
+The confusion between Physician and Prescription suggests that these clusters might have overlapping content.
+
+The high recall for Order means that most instances are correctly retrieved, but the slightly lower precision suggests some misclassification into this category.
+
+### Limitations
+
+- If we want to add new catagories we will have to edit the code and then the model performance might degrade with more clusters.
+
+- LLM prediction using small LLM needs a lot of prompt engineering and trial error to reach a good state. Some preprocessing on do should be done.
+
+- PDF Parsing might be computational expensive. Maybe Using more advanced Parsing method could lead to better results.
+
+### Future Work
+
+#### UI
+
+- A lot of work on the UI is needed, ability to control the pdf states, preview them.
+- Manually override cluster labels
+- Chat functionality with pdfs
+- Search Efficiently the documents
+
+#### Queue System
+
+- Migrate to Redis with actual worker running in the background
+- Use Cloud solutions like lambda functions to deal with file processing
+
+#### Parsing
+
+- Migrate to Cloud Solutions: More advanced parsing
+- Or add structure to the parsing, keeping track of the structure of the documents
+
+#### Classification
+
+- Rather than embeddins the entire documents, we could embbedd Multiple Chunks Classification and take majority vote
+- Migrate to LLM solution where we classify using prompt engineering
+- Try out multiple models and compare performance
+
+Other Solutions:
+
+- LLM based classification
+- ML Techniques like Random Forest
+- Basic Classification Feed Forward Neural Network
+- Train a BERT classifier
+
+#### Storage
+
+- Create a Vector Store and store the embeddings for context retrieval
+
+#### RAG system
+
+- Chat with your pdfs using simple vector store and embeddings already created.
 
 ## Setup and Installation
 
