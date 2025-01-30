@@ -5,6 +5,7 @@ app_name = "Ashvin IDP"
 import streamlit as st
 import pandas as pd
 from time import time as now
+import altair as alt
 
 from main import Main
 
@@ -68,7 +69,11 @@ def index_pdf_file():
     if ss.get("pdf_file"):
         ss["filename"] = ss["pdf_file"].name
         if ss["filename"] != ss.get("filename_done"):
-            pass
+            temp_path = f"/tmp/{ss['filename']}"
+            with open(temp_path, "wb") as f:
+                f.write(ss["pdf_file"].getbuffer())
+
+            main_worker.submit_pdf(temp_path)
 
 
 # ---------|| UI COMPONENTS ||---------
@@ -96,9 +101,13 @@ def ui_pdf_file():
 def show_clusters():
 
     data = main_worker.query_by_clusters()
+    cluster_ids = list(data.keys())
+
+    total_docs = 0
+    for _, docs in data.items():
+        total_docs += len(docs)
 
     st.header("Document Clusters")
-    cluster_ids = list(data.keys())
 
     if not cluster_ids or len(cluster_ids) == 0:
         st.info("No clusters available.")
@@ -129,6 +138,28 @@ def show_clusters():
         st.table(df)
     else:
         st.info("No documents in this cluster.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Total Documents", total_docs)
+        st.metric("Number of Clusters", len(data.keys()))
+
+    with col2:
+        st.text("Cluster Distribution")
+        counts_df = pd.DataFrame(
+            [{"label": v[0]["label"], "count": len(v)} for k, v in data.items()]
+        )
+        counts_df.columns = ["label", "count"]
+        chart = (
+            alt.Chart(counts_df)
+            .mark_arc()
+            .encode(
+                theta="count",
+                color=alt.Color("label", legend=None),
+                tooltip=["label", "count"],
+            )
+        )
+        st.altair_chart(chart, use_container_width=True)
 
 
 # ---------|| LAYOUT ||---------

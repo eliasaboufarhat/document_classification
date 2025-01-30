@@ -43,14 +43,26 @@ class Main:
     def rerun(self):
 
         files_extractor = QueueFiles(data_dir="./data")
-        files_extractor.run()
+        docs = files_extractor.run()
 
         classifier = Classifier(privacy=True)
-        classifier.pre_process_docs(docs=files_extractor.docs)
-        classifier.run()
+        pre_processed_docs = classifier.pre_process_docs(docs=docs)
+        docs = classifier.run(docs, pre_processed_docs)
 
-        for doc in classifier.docs:
+        for doc in docs:
             self.db.insert(doc)
+
+    def submit_pdf(self, temp_pdf_path):
+
+        files_extractor = QueueFiles(data_dir="./data")
+
+        doc = files_extractor.run_one_pdf(temp_pdf_path)
+
+        classifier = Classifier(privacy=True)
+        pre_processed_docs = classifier.pre_process_docs(docs=[doc])
+        doc = classifier.predict(doc, pre_processed_docs)
+        self.db.insert(doc)
+        return
 
 
 if __name__ == "__main__":

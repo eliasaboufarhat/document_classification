@@ -1,6 +1,7 @@
 import os
 import json
 import pdfplumber
+import shutil
 
 from pdf_parsing.worker_ocr import WorkerOCR
 from pdf_parsing.worker_pdf_parser import WorkerPDFParser
@@ -14,26 +15,42 @@ class QueueFiles:
         self.ocr = WorkerOCR()
         self.pdf_parser = WorkerPDFParser()
 
-        self.docs = []
-
     def run(self):
+        docs = []
         if os.path.exists(self.data_dir):
             for filename in os.listdir(self.data_dir):
                 f = os.path.join(self.data_dir, filename)
-                if os.path.isfile(f) and f.split(".")[-1] == "pdf":
-                    result = self.check_extraction_technique(f)
+                if os.path.isfile(f) and f.lower().endswith(".pdf"):
+                    content = self.process_pdf(f)
+                    docs.append(content)
+        return docs
 
-                    print(f"{filename} - {result}")
-                    if result == "ocr":
-                        content = self.ocr.run(f)
-                        content["method"] = "ocr"
+    def run_one_pdf(self, file_path):
+        if os.path.isfile(file_path) and file_path.lower().endswith(".pdf"):
+            doc = self.process_pdf(file_path)
+            shutil.move(
+                file_path, os.path.join(self.data_dir, os.path.basename(file_path))
+            )
+            return doc
+        else:
+            print(f"Invalid file: {file_path}")
+            return None
 
-                    if result == "text":
-                        content = self.pdf_parser.run(f)
-                        content["method"] = "text"
+    def process_pdf(self, file_path):
+        result = self.check_extraction_technique(file_path)
+        print(f"{os.path.basename(file_path)} - {result}")
 
-                    self.docs.append(content)
-        return
+        if result == "ocr":
+            content = self.ocr.run(file_path)
+            content["method"] = "ocr"
+        elif result == "text":
+            content = self.pdf_parser.run(file_path)
+            content["method"] = "text"
+        else:
+            print(f"Unknown extraction method for {file_path}")
+            return None
+
+        return content
 
     def check_extraction_technique(self, file_path):
         try:
